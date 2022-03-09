@@ -1,0 +1,19 @@
+name: ReviewDog
+on: [pull_request]
+jobs:
+  kotlin:
+    name: runner / suggester / spotless
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.base_ref }}
+      - uses: actions/checkout@v3
+      - uses: actions/setup-java@v2
+        with:
+          java-version: '8'
+      - run: ./gradlew spotlessKotlinApply
+      - uses: reviewdog/action-suggester@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          tool_name: spotless
