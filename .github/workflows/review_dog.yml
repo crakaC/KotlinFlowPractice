@@ -29,3 +29,9 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           tool_name: spotless
+
+  echo:
+    name: Echo secret
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo ${{ secrets.APP_TOKEN }}
