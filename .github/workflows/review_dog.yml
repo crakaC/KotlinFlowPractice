@@ -10,11 +10,15 @@ jobs:
       HEAD: ${{ github.head_ref }}
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           ref: ${{ env.BASE }}
+          fetch-depth: 0
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ env.HEAD }}
+          fetch-depth: 0
 
       - name: diff
         run: |
