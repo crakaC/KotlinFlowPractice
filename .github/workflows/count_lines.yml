@@ -1,5 +1,5 @@
 name: Count lines
-on: [ pull_request ]
+on: [ push ]
 jobs:
   count-diff-lines:
     name: Count lines
