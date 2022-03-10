@@ -1,0 +1,27 @@
+name: ReviewDog
+on: [ pull_request ]
+jobs:
+  count-diff-lines:
+    name: Count lines
+    runs-on: ubuntu-latest
+
+    env:
+      BASE: ${{ github.base_ref }}
+      HEAD: ${{ github.head_ref }}
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ env.BASE }}
+          fetch-depth: 0
+
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ env.HEAD }}
+          fetch-depth: 0
+
+      - name: diff
+        run: |
+          git diff ${{ env.BASE }} --numstat | grep ".*\.kt$" | awk '{additions+=$1} END {printf "lines=%d\n", additions}' >> $GITHUB_ENV
+      - name: check
+        run: echo ${{ env.lines }}
