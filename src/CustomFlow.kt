@@ -11,24 +11,39 @@ fun main(): Unit = runBlocking {
                     println(value)
                 }
             })
+
     }
+
 }
 
 private interface MyCollector<in T> {
+
     fun emit(value: T)
+
 }
 
 private interface MyFlow<out T> {
+
     fun collect(collector: MyCollector<T>)
+
 }
 
 private fun <T> myFlowOf(vararg value: T) = object : MyFlow<T> {
+
     override fun collect(collector: MyCollector<T>) {
+
         for (v in value) {
+
             collector.emit(v)
+
         }
+
     }
+
 }
+
+
+
 
 private inline fun <T, R> MyFlow<T>.map(crossinline transform: (value: T) -> R): MyFlow<R> {
     val upstream = this
