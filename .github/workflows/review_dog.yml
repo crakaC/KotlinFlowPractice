@@ -4,17 +4,25 @@ jobs:
   count-diff-lines:
     name: Count lines
     runs-on: ubuntu-latest
+
+    env:
+      BASE: ${{ github.base_ref }}
+      HEAD: ${{ github.head_ref }}
+
     steps:
-        - uses: actions/checkout@v3
-        - name: diff
-          env:
-            BASE: ${{ github.base_ref }}
-            HEAD: ${{ github.head_ref }}
-          run: |
-            git branch --show-current
-            git diff ${{ env.HEAD }} ${{ env.BASE }} --numstat | grep ".*\.kt$" | awk '{additions+=$1} END {printf "lines=%d\n", additions}' >> $GITHUB_ENV
-        - name: check
-          run: echo ${{ env.lines }}
+      - name: Checkout base
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ env.BASE }}
+          fetch-depth: 0
+
+      - name: diff
+        run: |
+          git branch --show-current
+          git diff ${{ env.HEAD }} ${{ env.BASE }} --numstat | grep ".*\.kt$" | awk '{additions+=$1} END {printf "lines=%d\n", additions}' >> $GITHUB_ENV
+      - name: check
+        run: echo ${{ env.lines }}
+
   kotlin:
     name: runner / suggester / spotless
     runs-on: ubuntu-latest
