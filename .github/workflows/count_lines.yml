@@ -1,4 +1,4 @@
-name: ReviewDog
+name: Count lines
 on: [ pull_request ]
 jobs:
   count-diff-lines:
