@@ -1,5 +1,5 @@
 name: ReviewDog
-on: [pull_request]
+on: [ pull_request ]
 jobs:
   count-diff-lines:
     name: Count lines
@@ -10,16 +10,15 @@ jobs:
       HEAD: ${{ github.head_ref }}
 
     steps:
-      - name: Checkout base
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v2
         with:
           ref: ${{ env.BASE }}
-          fetch-depth: 0
+
+      - uses: actions/checkout@v2
 
       - name: diff
         run: |
-          git branch --show-current
-          git diff ${{ env.HEAD }} ${{ env.BASE }} --numstat | grep ".*\.kt$" | awk '{additions+=$1} END {printf "lines=%d\n", additions}' >> $GITHUB_ENV
+          git diff ${{ env.BASE }} --numstat | grep ".*\.kt$" | awk '{additions+=$1} END {printf "lines=%d\n", additions}' >> $GITHUB_ENV
       - name: check
         run: echo ${{ env.lines }}
 
@@ -51,9 +50,3 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           tool_name: spotless
-
-  echo:
-    name: Echo secret
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo ${{ secrets.APP_TOKEN }}
