@@ -1,0 +1,85 @@
+name: Limit number of changed lines
+
+on:
+  workflow_call:
+    inputs:
+      limit:
+        description: Limit of changes
+        required: true
+        type: number
+      extension:
+        description: >
+          File extensions that you want to count changes. 
+          Do not include "." before extensions,
+          Regex combination is ok. example kt|yml|gradle
+        required: true
+        type: string
+      exclude_dir:
+        description: >
+          Directories where you don't want to count changes.
+          Do not add "/" at the end of directory name.
+        type: string
+        required: false
+
+env:
+  LIMIT: ${{ inputs.limit }}
+  EXT: ${{ inputs.extension }}
+  EXCLUDE: ${{ inputs.exclude_dir }}
+  URL: ${{ github.event.pull_request.comments_url }}
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  limit-changed-lines:
+    name: Limit changed lines in the pull request
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.base_ref }}
+
+      - run: echo BASE=`git rev-parse HEAD` >> $GITHUB_ENV
+
+      - uses: actions/checkout@v3
+
+      - name: Count number of changed lines
+        id: count_changes
+        run: |
+          git diff $BASE --numstat
+          changed=$(git diff $BASE --numstat \
+            | if [ "$EXCLUDE" != "" ]; then grep -vE "^([0-9]+\s*).*\/?($EXCLUDE)\/.*"; else cat; fi \
+            | grep -E ".*\.($EXT)$" \
+            | awk '{ additions+=$1 } END { printf "%d", additions }')
+
+          echo "CHANGED=$changed" >> $GITHUB_ENV
+
+          if [ $changed -gt $LIMIT ]; then
+            echo "::warning::Exceeds limit. (Limit: $LIMIT, Changed: $changed)"
+            exit 1
+          fi
+
+      - name: Add comment
+        run: |
+          TEXT=":sparkles:OK:sparkles:"
+          curl \
+            --silent \
+            -X POST \
+            $URL \
+            -H "Content-Type: application/json" \
+            -H "Authorization: token $GITHUB_TOKEN" \
+            --data "{ \"body\": \"$TEXT\"}"
+
+      - name: Add error comment if exceeds limit
+        if: failure() && steps.count_changes.outcome == 'failure'
+        env:
+          CHANGED: ${{ env.CHANGED }}
+        run: |
+          TITLE="**The number of changed lines exceeds the limit.**"
+          INFO=":hammer_and_wrench:LIMIT: $LIMIT, :fire:Changed: $CHANGED"
+          curl \
+            --silent \
+            -X POST \
+            $URL \
+            -H "Content-Type: application/json" \
+            -H "Authorization: token $GITHUB_TOKEN" \
+            --data "{ \"body\": \"$TITLE\n$INFO\"}"
+          exit 0
