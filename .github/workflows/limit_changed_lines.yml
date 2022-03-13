@@ -44,10 +44,9 @@ jobs:
       - name: Count number of changed lines
         id: count_changes
         run: |
-          git diff $BASE --numstat
           changed=$(git diff $BASE --numstat \
-            | if [ "$EXCLUDE" != "" ]; then grep -vE "^([0-9]+\s*).*\/?($EXCLUDE)\/.*"; else cat; fi \
-            | grep -E ".*\.($EXT)$" \
+            | if [ "$EXCLUDE" != "" ]; then grep -vP "^(\d+\s+)*\/?($EXCLUDE)\/.*"; else cat; fi \
+            | grep -P ".*\.($EXT)$" \
             | awk '{ additions+=$1 } END { printf "%d", additions }')
 
           echo "CHANGED=$changed" >> $GITHUB_ENV
@@ -82,4 +81,4 @@ jobs:
             -H "Content-Type: application/json" \
             -H "Authorization: token $GITHUB_TOKEN" \
             --data "{ \"body\": \"$TITLE\n$INFO\"}"
-          exit 0
+          exit 1
