@@ -22,6 +22,7 @@ on:
         required: false
 
 env:
+  BASE_REF: ${{ github.base_ref }}
   LIMIT: ${{ inputs.limit }}
   EXT: ${{ inputs.extension }}
   EXCLUDE: ${{ inputs.exclude_dir }}
@@ -34,18 +35,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-        with:
-          ref: ${{ github.base_ref }}
-
-      - run: echo BASE=`git rev-parse HEAD` >> $GITHUB_ENV
-
-      - uses: actions/checkout@v3
 
       - name: Count number of changed lines
         id: count_changes
         run: |
-          git diff $BASE --numstat
-          changed=$(git diff $BASE --numstat \
+          changed=$(git diff origin/$BASE_REF --numstat \
             | if [ "$EXCLUDE" != "" ]; then grep -vE "^([0-9]+\s*).*\/?($EXCLUDE)\/.*"; else cat; fi \
             | grep -E ".*\.($EXT)$" \
             | awk '{ additions+=$1 } END { printf "%d", additions }')
