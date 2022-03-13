@@ -8,11 +8,11 @@ stats=<<"EOF"
 EOF
 
 LIMIT=10
-BASE=main
+BASE="HEAD~5"
 EXCLUDE=.github
 EXT="kt|ya?ml"
 changed=$(git diff $BASE --numstat \
-| if [ "$EXCLUDE" != "" ]; then grep -vE ".*\/?($EXCLUDE)\/.*"; else cat; fi \
+| if [ "$EXCLUDE" != "" ]; then grep -vE "^(\d+\s+)+\/?($EXCLUDE)\/"; else cat; fi \
 | grep -E ".*\.($EXT)$" \
 | awk '{ additions+=$1 } END { printf "%d", additions }')
 

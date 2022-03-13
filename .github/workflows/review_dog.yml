@@ -6,7 +6,7 @@ jobs:
   limit-changes:
     uses: ./.github/workflows/limit_changed_lines.yml
     with:
-      limit: 10
+      limit: 100
       extension: kt|yml
       exclude_dir: .github
 
