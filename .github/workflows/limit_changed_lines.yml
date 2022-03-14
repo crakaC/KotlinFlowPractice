@@ -34,12 +34,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.base_ref }}
+
+      - run: echo BASE=`git rev-parse HEAD` >> $GITHUB_ENV
+
+      - uses: actions/checkout@v3
 
       - name: Count number of changed lines
         id: count_changes
         run: |
-          git show --numstat
-          changed=$(git show --numstat \
+          git diff $BASE --numstat
+          changed=$(git diff $BASE --numstat \
             | if [ "$EXCLUDE" != "" ]; then grep -vP "^(\d+\s+)+\/?($EXCLUDE)\/"; else cat; fi \
             | grep -P ".*\.($EXT)$" \
             | awk '{ additions+=$1 } END { printf "%d", additions }')
